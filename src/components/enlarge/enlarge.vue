@@ -234,6 +234,8 @@ export default {
       this.end = "";
       this.adcode = "";
       this.activities = [];
+      this.circleSize = 0.3;
+      this.lineWidth = 5;
       this.enlarge.clearAll();
     },
     handleClick() {
