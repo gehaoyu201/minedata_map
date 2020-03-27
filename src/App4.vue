@@ -1,19 +1,25 @@
 <template>
   <div id="app">
     <Map></Map>
-    <TotalArea />
+    <Enlarge />
   </div>
 </template>
 
 <script>
 import Map from "./components/MapContainer";
-import TotalArea from "./components/totalArea/totalArea.vue";
+import Enlarge from "./components/enlarge/enlarge.vue";
 export default {
   name: "app",
   components: {
     Map,
-    TotalArea
-  }
+    Enlarge
+  },
+  data() {
+    return {
+      mapState: false
+    };
+  },
+  method: {}
 };
 </script>
 

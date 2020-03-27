@@ -1,18 +1,18 @@
 <template>
-  <div id="app">
+  <div id="app1">
     <Map></Map>
-    <TotalArea />
+    <DrawLine />
   </div>
 </template>
 
 <script>
 import Map from "./components/MapContainer";
-import TotalArea from "./components/totalArea/totalArea.vue";
+import DrawLine from "./components/lightLine/lightLine.vue";
 export default {
-  name: "app",
+  name: "app1",
   components: {
     Map,
-    TotalArea
+    DrawLine
   }
 };
 </script>

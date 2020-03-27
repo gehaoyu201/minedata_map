@@ -1,18 +1,18 @@
 <template>
-  <div id="app">
+  <div id="app2">
     <Map></Map>
-    <TotalArea />
+    <LineSplit />
   </div>
 </template>
 
 <script>
 import Map from "./components/MapContainer";
-import TotalArea from "./components/totalArea/totalArea.vue";
+import LineSplit from "./components/splitLine/splitLine.vue";
 export default {
-  name: "app",
+  name: "app2",
   components: {
     Map,
-    TotalArea
+    LineSplit
   }
 };
 </script>
