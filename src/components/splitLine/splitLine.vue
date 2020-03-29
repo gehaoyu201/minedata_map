@@ -1,4 +1,3 @@
-<!-- 需要引入的有：turf,map,mimemap -->
 <template>
   <div class="split-wrapper">
     <el-form label-position="left" label-width="40px">

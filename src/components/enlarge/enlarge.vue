@@ -1,4 +1,3 @@
-<!--  -->
 <template>
   <div class="wrapper">
     <el-form label-position="left" label-width="40px">
