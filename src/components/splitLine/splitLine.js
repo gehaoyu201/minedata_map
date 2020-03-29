@@ -132,7 +132,7 @@ export default class SplitLine {
     * @param {Array} lineCoors  线的坐标
     * @param {String} unit  单位
     * @param {String} splitLength  以多长切割
-    * @return Object
+    * @return void
     */
     splitLine(lineCoors, unit, splitLength) {
         let option = this.option;
