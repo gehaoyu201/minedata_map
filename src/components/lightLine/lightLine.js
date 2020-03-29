@@ -1,14 +1,89 @@
 export default class LightLine {
     constructor(context) {
-        this.that = context
-        this.context = context;
-        this.colors = context.colors;
-        this.sourceData = context.sourceData
-        this.layerData = context.layerData
-        this.coors = context.coors
-        this.$message = context.message
+        this.option = context;
+        this.sourceData = {
+            type: "geojson",
+            data: {
+                type: "FeatureCollection",
+                features: []
+            }
+        }
+        this.layerData = []
+        this.colors = {
+            red: ["#ff0000", "#ff3838", "#ff8383", "#ffbebe", "#ffd1d1"],
+            orange: ["#ff9b00", "#ffb23a", "#ffcc7b", "#fff1ab", "#fff6c9"],
+            blue: ["#0048ff", "#2865ff", "#5c8aff", "#96b4ff", "#eaf0ff"],
+            green: ["#00A600", "#00EC00", "#79FF79", "#BBFFBB", "#F0FFF0"]
+        }
         this.map = window.map;
         this.minemap = window.minemap
+    }
+
+    /**
+    * @method render 渲染
+    * @return void
+    */
+    render() {
+        let defaultOption = {
+            sourceName: "lightLineSource",
+            layerName: "lightLineLayer",
+            colors: this.colors
+        }
+        this.option = Object.assign({}, defaultOption, this.option);
+        let option = this.option;
+        if (option['lineCoors']) {
+            let coors = this.parseCoors(option.lineCoors)
+            this.initLightLine(coors, option.lineWidth, option.color)
+        } else if (option['start'] && option['end']) {
+            this.initDrivingLightLine(option.start, option.end, option.lineWidth, option.color)
+        }
+    }
+
+    /**
+     * @method setOption 设置单个属性
+     * @param {String} name  
+     * @param {Any} value
+     * @return void
+     */
+    setOption(name, value) {
+        this.option[name] = value;
+    }
+
+    /**
+     * @method setObjectOption 设置多个属性
+     * @param {Object} obj
+     * @return void
+     */
+    setObjectOption(obj) {
+        this.option = obj;
+    }
+
+    /**
+     * @method getColorNames 获取颜色数组
+     * @return Array
+     */
+    getColorNames() {
+        let arr = []
+        for (let key in this.colors) {
+            arr.push(key)
+        }
+        return arr;
+    }
+
+    /**
+    * @method getLayerData 获取图层数据
+    * @return Array
+    */
+    getLayerData() {
+        return this.layerData;
+    }
+
+    /**
+    * @method getSourceData 获取数据源数据
+    * @return Array
+    */
+    getSourceData() {
+        return this.sourceData;
     }
 
     /**
@@ -20,14 +95,15 @@ export default class LightLine {
      */
     initLightLine(coors, lineWidth, value) {
         let map = this.map;
-        let SourceName = "lightLineSource";
-        let length = this.colors[value].length;
+        let option = this.option;
+        let sourceName = option.sourceName;
+        let length = option.colors[value].length;
         let lineOpacity = 1 / length;
         let oldLineWidth = lineWidth
         let featureObj = {
             type: "Feature",
             properties: {
-                sourceName: SourceName,
+                sourceName: sourceName,
                 colorName: value
             },
             geometry: {
@@ -36,15 +112,15 @@ export default class LightLine {
             }
         };
         this.sourceData.data.features.push(featureObj);
-        this.colors[value].forEach((e, i) => {
-            featureObj.properties[`color${i}`] = this.colors[value][i];
+        option.colors[value].forEach((e, i) => {
+            featureObj.properties[`color${i}`] = option.colors[value][i];
             featureObj.properties[`lineWidth${i}`] = lineWidth;
             lineWidth -= oldLineWidth / length;
-            if (!map.getSource("lightLineSource")) {
+            if (!map.getSource(sourceName)) {
                 let lObj = {
-                    id: `lightLineLayer_${i}`,
+                    id: `${option.layerName}_${i}`,
                     type: "line",
-                    source: `lightLineSource`,
+                    source: sourceName,
                     layout: {
                         "line-join": "round",
                         "line-cap": "round"
@@ -65,15 +141,16 @@ export default class LightLine {
                 lineOpacity += 1 / length;
             }
         });
-        if (!map.getSource(SourceName)) {
-            map.addSource(SourceName, this.sourceData);
+        if (!map.getSource(sourceName)) {
+            map.addSource(sourceName, this.sourceData);
             for (let item of this.layerData) {
                 map.addLayer(item);
             }
         } else {
-            map.getSource(SourceName).setData(this.sourceData.data);
+            map.getSource(sourceName).setData(this.sourceData.data);
         }
     }
+
     /**
      * @method initDrivingLightLine 根据起点和终点路径规划来生成高亮线
      * @param {String} start  起点
@@ -112,16 +189,11 @@ export default class LightLine {
      * @return Array || String
      */
     parseCoors(lineCoors) {
-        let that = this.that
         try {
             let coors;
             coors = JSON.parse(lineCoors);
             return coors
         } catch {
-            that.$message({
-                message: "坐标格式有误！！！",
-                type: "warning"
-            });
             return 'error';
         }
     }

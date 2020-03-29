@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import App from './App4.vue'
+import App from './App2.vue'
 import JsonViewer from "vue-json-viewer"
 import "./plugins/element"
 

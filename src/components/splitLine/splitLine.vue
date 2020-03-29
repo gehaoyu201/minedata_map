@@ -3,25 +3,25 @@
   <div class="split-wrapper">
     <el-form label-position="left" label-width="40px">
       <el-form-item>
-        <el-button @click="flag=!flag;clickStr='点击切换为按起点终点分割'" style="width:216px;">{{clickStr}}</el-button>
+        <el-button @click="flag=!flag;clickStr='点击切换为按起点终点分割';" style="width:264px;">{{clickStr}}</el-button>
       </el-form-item>
       <el-form-item v-if="!flag" label="数据">
         <el-input
           :placeholder="'请输入线数据,示例数据:' + exampleStr"
           type="textarea"
           :autosize="{ minRows: 1, maxRows: 10}"
-          v-model.trim="lineData"
+          v-model.trim="splitOption.lineData"
           clearable
         ></el-input>
       </el-form-item>
       <el-form-item v-if="flag" label="起点">
-        <el-input placeholder="示例：116.37,39.86" v-model.trim="start" clearable></el-input>
+        <el-input placeholder="示例：116.37,39.86" v-model.trim="splitOption.start" clearable></el-input>
       </el-form-item>
       <el-form-item v-if="flag" label="终点">
-        <el-input placeholder="示例：116.37,39.86" v-model.trim="end" clearable></el-input>
+        <el-input placeholder="示例：116.37,39.86" v-model.trim="splitOption.end" clearable></el-input>
       </el-form-item>
       <el-form-item label="单位">
-        <el-input placeholder="按多少千米切割，示例：10" v-model.trim="splitLength">
+        <el-input placeholder="按多少千米切割，示例：10" v-model.trim="splitOption.splitLength">
           <template slot="append">km</template>
         </el-input>
       </el-form-item>
@@ -40,24 +40,29 @@
 
 <script>
 import SplitLine from "./splitLine";
-import { minemap } from "../../config";
 export default {
   components: {},
   data() {
     return {
-      start: "",
-      end: "",
-      splitLength: "",
-      lineData: "",
+      /**
+       *
+       *  必须指定的属性：start,end,splitLength 或者 lineData,splitLength
+       *  非必须指定的属性：unit,circleRadius,lineWidth,pointColors(不超过5个),lineColors(不超过5个)
+       *                  lineLayerName,lineSourceName,pointLayerName,pointSourceName
+       */
+      splitOption: {
+        start: "", //起点
+        end: "", //终点
+        splitLength: "", //分割长度
+        lineData: "", //线数据
+        unit: "kilometers" //分割单位
+      },
       clickStr: "点击切换为按线数据分割",
       splitLine: null,
-      pointJsonData: null,
-      lineJsonData: null,
-      unit: "kilometers",
+      pointJsonData: null, //json-viewer pointSource展示
+      lineJsonData: null, //json-viewer lineJsonSource展示
       flag: true,
-      exampleStr: `{"type": "FeatureCollection","features": [{"type": "Feature","geometry": {"type": "LineString","coordinates":  [[116.37978,39.86563],[116.37994,39.86549],[116.37997,39.86546],[116.38013,39.86531]]},"properties": {"title": "路线一","kind": 1}}]}`,
-      pointColors: ["red", "black", "green", "yellow", "blue"],
-      lineColors: ["white", "pink", "orange", "#aa22ff", "#bbcc22"]
+      exampleStr: `{"type": "FeatureCollection","features": [{"type": "Feature","geometry": {"type": "LineString","coordinates":  [[116.37978,39.86563],[116.37994,39.86549],[116.37997,39.86546],[116.38013,39.86531]]},"properties": {"title": "路线一","kind": 1}}]}`
     };
   },
 
@@ -67,53 +72,28 @@ export default {
 
   methods: {
     handleClick() {
+      let option = JSON.parse(JSON.stringify(this.splitOption));
       if (this.flag) {
-        minemap.service.queryDrivingRouteResult(
-          this.start,
-          this.end,
-          4,
-          "",
-          "",
-          (error, results) => {
-            if (results) {
-              let lineCoors = JSON.parse(
-                (
-                  "[[" +
-                  results.data.rows[0].routelatlon.split(";").join("],[") +
-                  "]]"
-                ).replace(",[]]", "]")
-              );
-              let obj = this.splitLine.splitLine(
-                lineCoors,
-                this.unit,
-                this.splitLength
-              );
-              this.pointJsonData = obj.pointData;
-              this.lineJsonData = obj.lineData;
-            } else {
-              return error;
-            }
-          }
-        );
+        // 路径规划选项，不需要线数据
+        delete option.lineData;
       } else {
-        let lineCoors = [];
-        let json = eval("(" + this.lineData + ")");
-        for (let item of json.features) {
-          lineCoors.push(...item.geometry.coordinates);
-        }
-        let obj = this.splitLine.splitLine(
-          lineCoors,
-          this.unit,
-          this.splitLength
-        );
-        this.pointJsonData = obj.pointData;
-        this.lineJsonData = obj.lineData;
+        // 线数据选项，不需要起点和终点
+        delete option.start;
+        delete option.end;
       }
+      // 设置整个对象属性
+      this.splitLine.setObjectOption(option);
+      // 渲染
+      this.splitLine.render();
+      // 得到json-viewer数据
+      this.pointJsonData = this.splitLine.getPointJsonData();
+      this.lineJsonData = this.splitLine.getLineJsonData();
     }
   },
   created() {},
   mounted() {
-    this.splitLine = new SplitLine(this);
+    // 实例对象
+    this.splitLine = new SplitLine();
   },
   beforeCreate() {},
   beforeMount() {},
